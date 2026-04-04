@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install -r requirements.txt)",
+      "Bash(pip install:*)",
+      "Bash(python -c:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python main.py:*)",
+      "Bash(python test_system.py:*)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:pmc.ncbi.nlm.nih.gov)",
+      "WebFetch(domain:dendearts.com)",
+      "WebFetch(domain:www.lalaue.com)"
+    ]
+  }
+}

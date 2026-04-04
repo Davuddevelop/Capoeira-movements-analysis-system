@@ -1,0 +1,27 @@
+# Capoeira Movement Analysis System
+# Azerbaijan Capoeira Federation Project
+# Python 3.10+ required
+
+# Pose Detection - Google MediaPipe for body landmark detection
+mediapipe>=0.10.30
+
+# Video Processing - OpenCV for frame-by-frame video analysis
+opencv-python>=4.9.0
+
+# Numerical Computing - NumPy for angle calculations
+numpy>=1.26.0
+
+# Data Analysis - Pandas for organizing angle data
+pandas>=2.2.0
+
+# Visualization - Matplotlib for angle graphs in reports
+matplotlib>=3.8.0
+
+# Web Interface - Streamlit for the user-friendly UI
+streamlit>=1.32.0
+
+# PDF Generation - ReportLab for generating PDF reports
+reportlab>=4.1.0
+
+# Image Processing - Pillow for image handling
+Pillow>=10.2.0
