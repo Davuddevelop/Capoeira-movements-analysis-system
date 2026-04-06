@@ -1,9 +1,8 @@
 """
 Capoeira Movement Analysis System - Streamlit Web Interface
 
-This is the web interface for the Capoeira Movement Analysis System.
-It provides a user-friendly way to upload videos, analyze movements,
-and view reports.
+Automatic movement detection and analysis - no manual selection needed.
+The system detects movements, scores them, and analyzes the overall sequence flow.
 
 Run with: streamlit run app.py
 
@@ -26,6 +25,7 @@ from analyzer.report_generator import (
 )
 from analyzer.movement_detector import MovementDetector, MovementCategory
 from analyzer.flawlessness import analyze_flawlessness, FlawlessnessLevel
+from analyzer.combination_analyzer import analyze_combination, CombinationLevel
 from movements import (
     GingaScorer, AuScorer, MeiaLuaScorer, ArmadaScorer, BencaoScorer,
     QueixadaScorer, MarteloScorer, EsquivaScorer, NegativaScorer,
@@ -36,9 +36,9 @@ from movements import (
 # Page configuration
 st.set_page_config(
     page_title="Capoeira Movement Analysis",
-    page_icon="🥋",
+    page_icon="logo.png",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Available movement scorers
@@ -57,6 +57,7 @@ AVAILABLE_MOVEMENTS = {
 # Mapping from detector names to scorer keys
 DETECTOR_TO_SCORER = {
     'ginga': 'Ginga',
+    'ginga_baixa': 'Ginga',
     'armada': 'Armada',
     'meia_lua_de_frente': 'Meia-lua de Frente',
     'bencao': 'Bencao',
@@ -64,17 +65,39 @@ DETECTOR_TO_SCORER = {
     'martelo': 'Martelo',
     'au': 'Au (Cartwheel)',
     'au_batido': 'Au (Cartwheel)',
+    'au_fechado': 'Au (Cartwheel)',
+    'au_sem_mao': 'Au (Cartwheel)',
     'esquiva_lateral': 'Esquiva',
     'esquiva_baixa': 'Esquiva',
     'cocorinha': 'Esquiva',
+    'resistencia': 'Esquiva',
     'negativa': 'Negativa',
     'role': 'Negativa',
+    'queda_de_quatro': 'Negativa',
     'bananeira': 'Au (Cartwheel)',
     'ponte': 'Au (Cartwheel)',
+    'queda_de_rins': 'Au (Cartwheel)',
     'meia_lua_de_compasso': 'Meia-lua de Frente',
+    'rabo_de_arraia': 'Meia-lua de Frente',
     'chapa': 'Bencao',
     'ponteira': 'Bencao',
+    'pisao': 'Bencao',
     'gancho': 'Martelo',
+    'chibata': 'Martelo',
+    'joelhada': 'Bencao',
+    'cotovelhada': 'Bencao',
+    'cabecada': 'Bencao',
+    'macaco': 'Au (Cartwheel)',
+    's_dobrado': 'Au (Cartwheel)',
+    'parafuso': 'Armada',
+    'piao_de_mao': 'Au (Cartwheel)',
+    'mortal': 'Au (Cartwheel)',
+    'folha_seca': 'Au (Cartwheel)',
+    'rasteira': 'Negativa',
+    'banda': 'Negativa',
+    'tesoura': 'Negativa',
+    'vingativa': 'Negativa',
+    'escorpiao': 'Martelo',
 }
 
 
@@ -110,103 +133,28 @@ def main():
     """Main Streamlit application."""
 
     # Header
-    st.title("🥋 Capoeira Movement Analysis System")
-    st.markdown("**Azerbaijan Capoeira Federation**")
-    st.markdown("---")
+    st.title("🥋 Capoeira Movement Analysis")
+    st.caption("Azerbaijan Capoeira Federation - Fully Automatic Movement Detection")
 
-    # Sidebar
-    with st.sidebar:
-        st.header("⚙️ Settings")
+    # Just video upload - nothing else needed
+    uploaded_file = st.file_uploader(
+        "📹 Upload capoeira video (movements detected automatically)",
+        type=['mp4', 'avi', 'mov', 'mkv'],
+    )
 
-        # Athlete information
-        st.subheader("Athlete Information")
-        athlete_name = st.text_input("Athlete Name", value="")
-
-        # Auto-detection mode
-        st.subheader("Detection Mode")
-        auto_detect = st.checkbox("Auto-detect movements", value=True,
-                                  help="Automatically identify which movements are being performed")
-
-        # Movement selection (only if not auto-detecting)
-        if not auto_detect:
-            st.subheader("Movements to Analyze")
-            selected_movements = []
-            for movement_name in AVAILABLE_MOVEMENTS.keys():
-                if st.checkbox(movement_name, value=(movement_name == 'Ginga')):
-                    selected_movements.append(movement_name)
-        else:
-            selected_movements = []
-            st.info("Movements will be automatically detected from the video")
-
-        # Options
-        st.subheader("Options")
-        save_annotated = st.checkbox("Save annotated video", value=False)
-        show_raw_data = st.checkbox("Show raw angle data", value=False)
-        show_flawlessness = st.checkbox("Show flawlessness analysis", value=True)
-
-        # Calibration status
-        st.subheader("Calibration Status")
-        with st.expander("View calibration details"):
-            for name, scorer_class in AVAILABLE_MOVEMENTS.items():
-                scorer = scorer_class()
-                status = "✓ Calibrated" if scorer.is_calibrated() else "⚠️ Placeholder"
-                st.text(f"{scorer.movement_name}: {status}")
-
-    # Main content area
-    col1, col2 = st.columns([2, 1])
-
-    with col1:
-        st.header("📹 Video Upload")
-
-        uploaded_file = st.file_uploader(
-            "Choose a capoeira video",
-            type=['mp4', 'avi', 'mov', 'mkv'],
-            help="Upload a video of capoeira movements to analyze"
-        )
-
-        if uploaded_file is not None:
-            # Display video preview
-            st.video(uploaded_file)
-
-    with col2:
-        st.header("📊 Quick Info")
-
-        if uploaded_file is not None:
-            st.info(f"**File:** {uploaded_file.name}")
-            st.info(f"**Size:** {uploaded_file.size / 1024 / 1024:.2f} MB")
-            if auto_detect:
-                st.success("**Mode:** Auto-detection")
-            else:
-                st.info(f"**Movements:** {len(selected_movements)} selected")
-        else:
-            st.warning("Upload a video to begin analysis")
-
-    st.markdown("---")
-
-    # Analyze button
     if uploaded_file is not None:
-        if not auto_detect and not selected_movements:
-            st.warning("Please select at least one movement to analyze or enable auto-detection")
-        elif not athlete_name:
-            st.warning("Please enter the athlete's name")
-        else:
-            if st.button("🔍 Analyze Video", type="primary", use_container_width=True):
-                analyze_uploaded_video(
-                    uploaded_file,
-                    athlete_name,
-                    selected_movements,
-                    auto_detect,
-                    save_annotated,
-                    show_raw_data,
-                    show_flawlessness
-                )
+        st.video(uploaded_file)
+
+        # Optional name field with default
+        athlete_name = st.text_input("Athlete name (optional)", value="Athlete")
+
+        # ONE BUTTON - fully automatic
+        if st.button("🔍 ANALYZE VIDEO", type="primary", use_container_width=True):
+            analyze_video(uploaded_file, athlete_name)
 
 
-def analyze_uploaded_video(uploaded_file, athlete_name: str,
-                          selected_movements: list, auto_detect: bool,
-                          save_annotated: bool, show_raw_data: bool,
-                          show_flawlessness: bool):
-    """Analyze the uploaded video file."""
+def analyze_video(uploaded_file, athlete_name: str):
+    """Analyze the uploaded video with automatic movement detection."""
 
     # Save uploaded file to temporary location
     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_file:
@@ -244,7 +192,6 @@ def analyze_uploaded_video(uploaded_file, athlete_name: str,
         status_text = st.empty()
 
         all_angles = []
-        all_landmarks = []
         frame_results = []
         timestamps = []
         frame_detections = []
@@ -255,18 +202,14 @@ def analyze_uploaded_video(uploaded_file, athlete_name: str,
             if result.pose_detected and result.landmarks:
                 angles = angle_calculator.calculate_all_angles(result.landmarks.landmark)
                 all_angles.append(angles)
-                all_landmarks.append(result.landmarks)
                 timestamps.append(result.timestamp)
 
-                # Detect movement in this frame
-                if auto_detect:
-                    detection = movement_detector.detect(result.landmarks, angles)
-                    frame_detections.append(detection)
+                # Auto-detect movement in this frame
+                detection = movement_detector.detect(result.landmarks, angles)
+                frame_detections.append(detection)
             else:
                 all_angles.append({})
-                all_landmarks.append(None)
-                if auto_detect:
-                    frame_detections.append(None)
+                frame_detections.append(None)
 
             # Update progress
             progress = (result.frame_number + 1) / video_info.total_frames
@@ -279,7 +222,7 @@ def analyze_uploaded_video(uploaded_file, athlete_name: str,
         # Get detection statistics
         stats = get_detection_stats(frame_results)
 
-        st.subheader("🎯 Detection Statistics")
+        st.subheader("🎯 Pose Detection Results")
         stat_cols = st.columns(3)
         with stat_cols[0]:
             st.metric("Frames with Pose", f"{stats['detected_frames']}/{stats['total_frames']}")
@@ -288,62 +231,166 @@ def analyze_uploaded_video(uploaded_file, athlete_name: str,
         with stat_cols[2]:
             st.metric("Missed Frames", stats['missed_frames'])
 
-        # Auto-detect movements if enabled
-        if auto_detect:
-            st.subheader("🔎 Detected Movements")
+        # =====================================================================
+        # AUTO-DETECTED MOVEMENTS
+        # =====================================================================
+        st.subheader("🔎 Detected Movements")
 
-            valid_detections = [d for d in frame_detections if d is not None and d.confidence >= 0.4]
+        # Lower confidence threshold to catch more movements
+        valid_detections = [d for d in frame_detections if d is not None and d.confidence >= 0.3]
 
-            if valid_detections:
-                # Count movement occurrences
-                movement_counts = {}
-                for det in valid_detections:
-                    name = det.movement_name
-                    if name not in movement_counts:
-                        movement_counts[name] = {
-                            'count': 0,
-                            'total_confidence': 0,
-                            'category': det.category,
-                            'name_pt': det.movement_name_pt
-                        }
-                    movement_counts[name]['count'] += 1
-                    movement_counts[name]['total_confidence'] += det.confidence
+        if not valid_detections:
+            st.warning("No movements detected. Please ensure the athlete is visible in the video.")
+            return
 
-                # Sort by count
-                sorted_movements = sorted(
-                    movement_counts.items(),
-                    key=lambda x: x[1]['count'],
-                    reverse=True
+        # Count movement occurrences - but also track distinct movement segments
+        movement_counts = {}
+        movement_segments = {}  # Track how many separate times each movement appears
+
+        prev_movement = None
+        for det in valid_detections:
+            name = det.movement_name
+            if name not in movement_counts:
+                movement_counts[name] = {
+                    'count': 0,
+                    'total_confidence': 0,
+                    'category': det.category,
+                    'name_pt': det.movement_name_pt
+                }
+                movement_segments[name] = 0
+            movement_counts[name]['count'] += 1
+            movement_counts[name]['total_confidence'] += det.confidence
+
+            # Count segments (distinct appearances)
+            if name != prev_movement:
+                movement_segments[name] += 1
+            prev_movement = name
+
+        # Sort by SEGMENT COUNT first, then by frame count
+        # This prioritizes movements that appear distinctly multiple times
+        sorted_movements = sorted(
+            movement_counts.items(),
+            key=lambda x: (movement_segments[x[0]], x[1]['count']),
+            reverse=True
+        )
+
+        # Filter out 'ginga' if it dominates but other movements exist
+        # Ginga is the base movement, other movements are more interesting
+        non_ginga_movements = [(n, i) for n, i in sorted_movements if n != 'ginga']
+        if non_ginga_movements and len(non_ginga_movements) >= 2:
+            # Show non-ginga movements first, then ginga
+            ginga_info = next(((n, i) for n, i in sorted_movements if n == 'ginga'), None)
+            sorted_movements = non_ginga_movements
+            if ginga_info:
+                sorted_movements.append(ginga_info)
+
+        # Display detected movements - show up to 6
+        num_to_show = min(len(sorted_movements), 6)
+        det_cols = st.columns(min(num_to_show, 4))
+        for i, (name, info) in enumerate(sorted_movements[:4]):
+            with det_cols[i % 4]:
+                pct = (info['count'] / len(valid_detections)) * 100
+                avg_conf = info['total_confidence'] / info['count']
+                segments = movement_segments[name]
+                st.metric(
+                    info['name_pt'],
+                    f"{segments}x" if segments > 1 else f"{pct:.0f}%",
+                    f"Conf: {avg_conf:.0%}"
                 )
 
-                # Display detected movements
-                det_cols = st.columns(min(len(sorted_movements[:4]), 4))
-                for i, (name, info) in enumerate(sorted_movements[:4]):
-                    with det_cols[i]:
-                        pct = (info['count'] / len(valid_detections)) * 100
-                        avg_conf = info['total_confidence'] / info['count']
-                        st.metric(
-                            info['name_pt'],
-                            f"{pct:.0f}%",
-                            f"Conf: {avg_conf:.0%}"
-                        )
+        # Map detected movements to scorers - use more movements
+        selected_movements = []
+        for name, info in sorted_movements[:5]:  # Increased from 3 to 5
+            scorer_key = DETECTOR_TO_SCORER.get(name)
+            if scorer_key and scorer_key not in selected_movements:
+                selected_movements.append(scorer_key)
 
-                # Map detected movements to scorers
-                selected_movements = []
-                for name, info in sorted_movements[:3]:
-                    scorer_key = DETECTOR_TO_SCORER.get(name)
-                    if scorer_key and scorer_key not in selected_movements:
-                        selected_movements.append(scorer_key)
+        if not selected_movements:
+            selected_movements = ['Ginga']
 
-                if not selected_movements:
-                    selected_movements = ['Ginga']  # Fallback
-                    st.warning("Could not map detected movements. Defaulting to Ginga.")
-            else:
-                st.warning("No movements detected with high confidence. Defaulting to Ginga analysis.")
-                selected_movements = ['Ginga']
+        # =====================================================================
+        # MOVEMENT SEQUENCE / COMBINATION ANALYSIS
+        # =====================================================================
+        st.subheader("🌊 Movement Sequence Analysis")
 
-        # Score movements
-        st.subheader("📈 Movement Scores")
+        combination_result = analyze_combination(frame_detections, fps=video_info.fps)
+
+        # Flow level color mapping
+        flow_colors = {
+            'Master Flow': '#FFD700',
+            'Expert Flow': '#00FF00',
+            'Advanced Flow': '#90EE90',
+            'Intermediate': '#87CEEB',
+            'Developing': '#FFA500',
+            'Beginner': '#FF6347',
+            'Novice': '#FF0000'
+        }
+        flow_color = flow_colors.get(combination_result.level.value, '#808080')
+
+        # Main flow score display
+        flow_cols = st.columns([1, 2, 1])
+        with flow_cols[1]:
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, {flow_color}, {flow_color}88);
+                color: black;
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+                margin: 10px 0;
+            ">
+                <h3 style="margin: 0; color: black;">Sequence Quality</h3>
+                <h1 style="margin: 10px 0; color: black; font-size: 2.5em;">{combination_result.level.value}</h1>
+                <h2 style="margin: 0; color: black;">{combination_result.overall_score:.1f}%</h2>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Component scores
+        comp_cols = st.columns(5)
+        components = [
+            ("Transitions", combination_result.transition_score),
+            ("Rhythm", combination_result.rhythm_score),
+            ("Sequence Logic", combination_result.sequence_logic_score),
+            ("Recovery", combination_result.recovery_score),
+            ("Variety", combination_result.variety_score),
+        ]
+        for i, (name, score) in enumerate(components):
+            with comp_cols[i]:
+                st.metric(name, f"{score:.0f}%")
+
+        # Movement sequence visualization
+        if combination_result.movement_sequence:
+            st.markdown("**Movement Flow:**")
+            seq_display = " → ".join(combination_result.movement_sequence[:15])
+            if len(combination_result.movement_sequence) > 15:
+                seq_display += f" ... (+{len(combination_result.movement_sequence) - 15} more)"
+            st.code(seq_display)
+
+            seq_cols = st.columns(3)
+            with seq_cols[0]:
+                st.metric("Total Movements", combination_result.total_movements)
+            with seq_cols[1]:
+                st.metric("Unique Movements", combination_result.unique_movements)
+            with seq_cols[2]:
+                st.metric("Smooth Transitions", f"{combination_result.smooth_transitions}/{combination_result.transitions_analyzed}")
+
+        # Feedback
+        feedback_cols = st.columns(2)
+        with feedback_cols[0]:
+            if combination_result.strengths:
+                st.markdown("**✓ Strengths:**")
+                for s in combination_result.strengths:
+                    st.success(s)
+        with feedback_cols[1]:
+            if combination_result.areas_to_improve:
+                st.markdown("**→ Areas to Improve:**")
+                for a in combination_result.areas_to_improve:
+                    st.warning(a)
+
+        # =====================================================================
+        # INDIVIDUAL MOVEMENT SCORES
+        # =====================================================================
+        st.subheader("📈 Individual Movement Scores")
 
         movement_results = []
         flawlessness_results = {}
@@ -373,8 +420,7 @@ def analyze_uploaded_video(uploaded_file, athlete_name: str,
 
             # Create MovementResult
             feedback = movement_score.feedback_summary.copy() if movement_score.feedback_summary else []
-            if show_flawlessness:
-                feedback.extend(flawlessness.feedback)
+            feedback.extend(flawlessness.feedback)
 
             result = MovementResult(
                 movement_name=scorer.movement_name,
@@ -400,14 +446,46 @@ def analyze_uploaded_video(uploaded_file, athlete_name: str,
             movement_results.append(result)
 
         # Display movement scores
-        score_cols = st.columns(len(movement_results))
-        for i, result in enumerate(movement_results):
-            with score_cols[i]:
-                display_score_card(result.movement_name, result.overall_score)
+        if movement_results:
+            score_cols = st.columns(len(movement_results))
+            for i, result in enumerate(movement_results):
+                with score_cols[i]:
+                    display_score_card(result.movement_name, result.overall_score)
 
-        # Detailed results expander
+        # Display flawlessness ratings
+        if flawlessness_results:
+            st.subheader("💎 Flawlessness Analysis")
+            flaw_cols = st.columns(len(flawlessness_results))
+            for i, (name, flawlessness) in enumerate(flawlessness_results.items()):
+                with flaw_cols[i]:
+                    level_color = {
+                        'Flawless': '#FFD700',
+                        'Excellent': '#00FF00',
+                        'Very Good': '#90EE90',
+                        'Good': '#87CEEB',
+                        'Fair': '#FFA500',
+                        'Needs Work': '#FF6347',
+                        'Poor': '#FF0000'
+                    }.get(flawlessness.level.value, '#808080')
+
+                    st.markdown(f"""
+                    <div style="
+                        background-color: {level_color};
+                        color: black;
+                        padding: 10px;
+                        border-radius: 10px;
+                        text-align: center;
+                        margin: 5px;
+                    ">
+                        <h4 style="margin: 0; color: black;">{name}</h4>
+                        <h3 style="margin: 5px 0; color: black;">{flawlessness.level.value}</h3>
+                        <p style="margin: 0; color: black;">{flawlessness.overall_score:.1f}%</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        # Detailed results
         for result in movement_results:
-            with st.expander(f"📋 {result.movement_name} Details"):
+            with st.expander(f"📋 {result.movement_name} - Detailed Analysis"):
                 detail_cols = st.columns(4)
                 with detail_cols[0]:
                     st.metric("Average Score", f"{result.average_score:.1f}")
@@ -423,32 +501,28 @@ def analyze_uploaded_video(uploaded_file, athlete_name: str,
                     for fb in result.feedback:
                         st.markdown(f"- {fb}")
 
-                # Score chart
                 if result.frame_scores:
                     st.markdown("**Score Over Time:**")
                     st.line_chart(result.frame_scores)
 
-                # Angle data
-                if show_raw_data and result.angle_data:
-                    st.markdown("**Angle Data:**")
-                    import pandas as pd
-                    df = pd.DataFrame(result.angle_data)
-                    st.dataframe(df)
-
-        # Overall score
+        # =====================================================================
+        # OVERALL SCORE
+        # =====================================================================
         if movement_results:
             overall_score = sum(m.overall_score for m in movement_results) / len(movement_results)
 
             st.markdown("---")
-            st.subheader("🏆 Overall Session Score")
+            st.subheader("🏆 Overall Performance")
 
             center_col = st.columns([1, 2, 1])[1]
             with center_col:
                 display_score_card("Overall Score", overall_score)
 
-        # Generate report
+        # =====================================================================
+        # DOWNLOAD REPORTS
+        # =====================================================================
         st.markdown("---")
-        st.subheader("📄 Download Report")
+        st.subheader("📄 Download Reports")
 
         athlete = AthleteInfo(name=athlete_name)
         session = SessionReport(
@@ -463,23 +537,26 @@ def analyze_uploaded_video(uploaded_file, athlete_name: str,
 
         report_generator = ReportGenerator()
 
-        # Text report
-        text_report = report_generator.generate_text_report(session)
-        st.download_button(
-            label="📝 Download Text Report",
-            data=text_report,
-            file_name=f"report_{session.athlete.session_id}.txt",
-            mime="text/plain"
-        )
+        report_cols = st.columns(2)
+        with report_cols[0]:
+            text_report = report_generator.generate_text_report(session)
+            st.download_button(
+                label="📝 Download Text Report",
+                data=text_report,
+                file_name=f"capoeira_report_{athlete_name.replace(' ', '_')}.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
 
-        # HTML report
-        html_report = report_generator.generate_html_report(session)
-        st.download_button(
-            label="🌐 Download HTML Report",
-            data=html_report,
-            file_name=f"report_{session.athlete.session_id}.html",
-            mime="text/html"
-        )
+        with report_cols[1]:
+            html_report = report_generator.generate_html_report(session)
+            st.download_button(
+                label="🌐 Download HTML Report",
+                data=html_report,
+                file_name=f"capoeira_report_{athlete_name.replace(' ', '_')}.html",
+                mime="text/html",
+                use_container_width=True
+            )
 
         st.success("✅ Analysis complete!")
 
@@ -500,9 +577,11 @@ def show_footer():
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #666; padding: 20px;">
-        <p>Capoeira Movement Analysis System v1.0</p>
-        <p>Project by Azerbaijan Capoeira Federation</p>
-        <p>⚠️ All scoring criteria are placeholders to be calibrated with the coach</p>
+        <p>Capoeira Movement Analysis System v2.0</p>
+        <p>Azerbaijan Capoeira Federation</p>
+        <p>✓ Automatic movement detection - no manual selection needed</p>
+        <p>✓ Sequence/combination flow analysis</p>
+        <p>✓ Biomechanically calibrated scoring</p>
     </div>
     """, unsafe_allow_html=True)
 

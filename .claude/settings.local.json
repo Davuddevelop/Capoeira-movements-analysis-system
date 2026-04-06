@@ -10,7 +10,9 @@
       "WebFetch(domain:en.wikipedia.org)",
       "WebFetch(domain:pmc.ncbi.nlm.nih.gov)",
       "WebFetch(domain:dendearts.com)",
-      "WebFetch(domain:www.lalaue.com)"
+      "WebFetch(domain:www.lalaue.com)",
+      "Bash(python:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

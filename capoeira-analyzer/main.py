@@ -28,6 +28,7 @@ from analyzer.report_generator import (
     ReportGenerator, SessionReport, AthleteInfo, MovementResult
 )
 from analyzer.movement_detector import MovementDetector, MovementCategory
+from analyzer.combination_analyzer import CombinationAnalyzer, analyze_combination
 from movements import (
     GingaScorer, AuScorer, MeiaLuaScorer, ArmadaScorer, BencaoScorer,
     QueixadaScorer, MarteloScorer, EsquivaScorer, NegativaScorer,
@@ -299,6 +300,41 @@ def analyze_video(video_path: str,
     else:
         overall_score = 0.0
 
+    # Analyze movement combinations (if auto-detect was used)
+    combination_result = None
+    if auto_detect and frame_detections:
+        if verbose:
+            print("Analyzing movement combinations...")
+
+        combination_result = analyze_combination(
+            frame_detections,
+            fps=video_info.fps
+        )
+
+        if verbose:
+            print(f"  Combination Flow: {combination_result.level.value}")
+            print(f"  Flow Score: {combination_result.overall_score:.1f}%")
+            print(f"  Movements Detected: {combination_result.total_movements}")
+            print(f"  Unique Movements: {combination_result.unique_movements}")
+            print(f"  Smooth Transitions: {combination_result.smooth_transitions}/{combination_result.transitions_analyzed}")
+            print()
+
+            if combination_result.movement_sequence:
+                print(f"  Movement Sequence: {' -> '.join(combination_result.movement_sequence[:10])}")
+                if len(combination_result.movement_sequence) > 10:
+                    print(f"    ... and {len(combination_result.movement_sequence) - 10} more")
+                print()
+
+            if combination_result.strengths:
+                print("  Strengths:")
+                for s in combination_result.strengths:
+                    print(f"    + {s}")
+            if combination_result.areas_to_improve:
+                print("  Areas to Improve:")
+                for a in combination_result.areas_to_improve:
+                    print(f"    - {a}")
+            print()
+
     # Create session report
     athlete = AthleteInfo(name=athlete_name)
     session = SessionReport(
@@ -398,9 +434,9 @@ def run_tests():
         from analyzer.movement_scorer import MovementScorer
         from analyzer.report_generator import ReportGenerator
         from movements import GingaScorer
-        print("  ✓ All imports successful")
+        print("  [OK] All imports successful")
     except ImportError as e:
-        print(f"  ✗ Import failed: {e}")
+        print(f"  [FAIL] Import failed: {e}")
         return False
 
     # Test 2: Angle calculation
@@ -410,9 +446,9 @@ def run_tests():
         # Test with a simple right angle
         angle = calc.calculate_angle((0, 0), (1, 0), (1, 1))
         assert 85 < angle < 95, f"Expected ~90°, got {angle}°"
-        print(f"  ✓ Angle calculation works (got {angle:.1f}° for right angle)")
+        print(f"  [OK] Angle calculation works (got {angle:.1f}° for right angle)")
     except Exception as e:
-        print(f"  ✗ Angle calculation failed: {e}")
+        print(f"  [FAIL] Angle calculation failed: {e}")
         return False
 
     # Test 3: Movement scorer
@@ -421,9 +457,9 @@ def run_tests():
         ginga = GingaScorer()
         assert ginga.movement_name == "Ginga"
         assert len(ginga.criteria) > 0
-        print(f"  ✓ Ginga scorer initialized with {len(ginga.criteria)} criteria")
+        print(f"  [OK] Ginga scorer initialized with {len(ginga.criteria)} criteria")
     except Exception as e:
-        print(f"  ✗ Movement scorer failed: {e}")
+        print(f"  [FAIL] Movement scorer failed: {e}")
         return False
 
     # Test 4: Report generation
@@ -434,13 +470,13 @@ def run_tests():
         generator = ReportGenerator()
         text_report = generator.generate_text_report(sample)
         assert len(text_report) > 100
-        print("  ✓ Report generation works")
+        print("  [OK] Report generation works")
     except Exception as e:
-        print(f"  ✗ Report generation failed: {e}")
+        print(f"  [FAIL] Report generation failed: {e}")
         return False
 
     print()
-    print("All tests passed! ✓")
+    print("All tests passed! [OK]")
     return True
 
 

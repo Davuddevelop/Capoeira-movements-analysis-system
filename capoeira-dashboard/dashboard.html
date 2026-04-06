@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Capoeira Vision | Movement Analysis Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <aside>
+      <a href="index.html" class="brand">
+        <img src="/logo.png" alt="Capoeira Vision Logo" style="width: 48px; height: 48px; object-fit: contain;" />
+        <span class="brand-name">CAPOEIRA VISION</span>
+      </a>
+      <nav>
+        <a href="#" class="nav-item active">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i data-lucide="video"></i>
+          <span>Sessions</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i data-lucide="users"></i>
+          <span>Athletes</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i data-lucide="bar-chart-3"></i>
+          <span>Analytics</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i data-lucide="settings"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+      <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+        <div style="padding: 1rem; background: rgba(244, 196, 48, 0.08); border-radius: 14px; border: 1px solid rgba(244, 196, 48, 0.2);">
+          <div style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Pro Tip</div>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">Upload a video to get automatic movement detection and scoring.</p>
+        </div>
+        <a href="#" class="nav-item">
+          <i data-lucide="help-circle"></i>
+          <span>Help & Support</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+      <header>
+        <div class="header-left">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+            <h1>Performance Analysis</h1>
+            <span class="badge badge-green badge-live">Live</span>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">
+            Azerbaijan Capoeira Federation • Session <span id="session-id" style="color: var(--accent-gold);">#8421</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <input type="file" id="video-upload" accept="video/*" style="display: none;" />
+          <button id="upload-btn" class="card card-glow" style="padding: 0.6rem 1.25rem; cursor: pointer; color: var(--accent-gold); font-weight: 600; border: 1px solid var(--accent-gold); display: flex; align-items: center; gap: 10px; background: var(--accent-gold-dim);">
+            <i data-lucide="upload" style="width: 18px; height: 18px;"></i>
+            Analyze Video
+          </button>
+          <div class="user-profile">
+            <div class="avatar">DA</div>
+            <span style="font-weight: 600; font-size: 0.85rem;">Davud A.</span>
+            <i data-lucide="chevron-down" style="width: 14px; color: var(--text-tertiary);"></i>
+          </div>
+        </div>
+      </header>
+
+      <!-- Loading Overlay -->
+      <div id="loading-overlay" style="display: none; position: fixed; inset: 0; background: rgba(5,5,8,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(20px);">
+        <div style="width: 120px; height: 120px; position: relative; margin-bottom: 2rem;">
+          <svg class="progress-ring" width="120" height="120">
+            <circle class="progress-ring-bg" cx="60" cy="60" r="52" />
+            <circle class="progress-ring-fill" id="loading-ring" cx="60" cy="60" r="52" style="stroke-dashoffset: 326.7;" />
+          </svg>
+          <div class="progress-ring-value">
+            <span class="value" id="loading-percent">0%</span>
+          </div>
+        </div>
+        <h2 id="loading-status" style="font-size: 1.25rem; margin-bottom: 0.5rem;">Analyzing Movement...</h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">Automatic Movement Detection & Scoring</p>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Video Analysis Section -->
+        <div class="card video-container">
+          <div id="video-placeholder" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;color:var(--text-secondary);">
+            <div style="width: 80px; height: 80px; border-radius: 20px; background: var(--accent-gold-dim); display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="video" style="width: 36px; height: 36px; color: var(--accent-gold);"></i>
+            </div>
+            <div style="text-align: center;">
+              <p style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">No video loaded</p>
+              <p style="font-size: 0.85rem;">Upload a video or enable the camera to begin analysis</p>
+            </div>
+          </div>
+          <video id="video-player" style="display:none;width:100%;height:100%;object-fit:contain;border-radius:16px;" controls></video>
+          <video id="camera-feed" style="display:none;width:100%;height:100%;object-fit:contain;border-radius:16px;" autoplay playsinline muted></video>
+          <canvas id="overlay"></canvas>
+          <div id="video-badge" style="display:none;position:absolute;bottom:20px;left:20px;background:rgba(0,0,0,0.8);padding:10px 16px;border-radius:10px;border:1px solid var(--accent-green);backdrop-filter:blur(10px);">
+            <span id="video-badge-text" style="color:var(--accent-green);font-weight:700;font-size:0.75rem;letter-spacing:1.5px;display:flex;align-items:center;gap:8px;">
+              <span style="width:8px;height:8px;background:var(--accent-green);border-radius:50%;animation:pulse-dot 1.5s infinite;"></span>
+              SKELETON ACTIVE
+            </span>
+          </div>
+          <button id="camera-btn" style="position:absolute;top:16px;right:16px;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:10px 16px;border-radius:12px;cursor:pointer;font-size:0.8rem;display:flex;align-items:center;gap:8px;backdrop-filter:blur(10px);transition:all 0.3s;">
+            <i data-lucide="camera" style="width: 16px; height: 16px;"></i>
+            Live Camera
+          </button>
+        </div>
+
+        <!-- Right Side: Stats & Movements -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+          <!-- Overall Score Ring -->
+          <div class="card card-glow" style="text-align: center; padding: 1.5rem;">
+            <div class="progress-ring-container" style="margin-bottom: 1rem;">
+              <svg class="progress-ring" width="100" height="100">
+                <circle class="progress-ring-bg" cx="50" cy="50" r="40" />
+                <circle class="progress-ring-fill" id="score-ring" cx="50" cy="50" r="40" style="stroke-dasharray: 251.2; stroke-dashoffset: 41.87;" />
+              </svg>
+              <div class="progress-ring-value">
+                <span class="value" id="overall-score">8.4</span>
+              </div>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Overall Score</div>
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 0.75rem;">
+              <span class="badge badge-gold">Advanced</span>
+              <span class="stat-trend up">+0.3</span>
+            </div>
+          </div>
+
+          <!-- Quick Stats Grid -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 0.9rem; font-weight: 600;">Quick Stats</h3>
+              <span class="badge badge-blue">This Session</span>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-label">Detection Rate</div>
+                <div class="stat-value green" id="detection-rate">98.2<span class="unit">%</span></div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Movements</div>
+                <div class="stat-value gold" id="movement-count">5</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Duration</div>
+                <div class="stat-value" id="duration">2:45</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Flow Score</div>
+                <div class="stat-value blue" id="flow-score">7.8</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Movement Breakdown -->
+          <div class="card" style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 0.9rem; font-weight: 600;">Detected Movements</h3>
+              <span style="font-size: 0.75rem; color: var(--text-tertiary);">Auto-detected</span>
+            </div>
+            <div class="movement-list" id="movement-list">
+              <div class="movement-item">
+                <div class="movement-icon">🦵</div>
+                <div class="movement-info">
+                  <div class="movement-name">Ginga</div>
+                  <div class="movement-category">Fundamental</div>
+                </div>
+                <div class="movement-score high">9.2</div>
+                <div class="movement-progress" style="width: 92%;"></div>
+              </div>
+              <div class="movement-item">
+                <div class="movement-icon">🤸</div>
+                <div class="movement-info">
+                  <div class="movement-name">Au (Cartwheel)</div>
+                  <div class="movement-category">Acrobatic</div>
+                </div>
+                <div class="movement-score mid">6.8</div>
+                <div class="movement-progress" style="width: 68%; background: var(--accent-gold);"></div>
+              </div>
+              <div class="movement-item">
+                <div class="movement-icon">🦶</div>
+                <div class="movement-info">
+                  <div class="movement-name">Meia-lua de Frente</div>
+                  <div class="movement-category">Kick</div>
+                </div>
+                <div class="movement-score high">8.5</div>
+                <div class="movement-progress" style="width: 85%;"></div>
+              </div>
+              <div class="movement-item">
+                <div class="movement-icon">💨</div>
+                <div class="movement-info">
+                  <div class="movement-name">Armada</div>
+                  <div class="movement-category">Kick</div>
+                </div>
+                <div class="movement-score low">4.2</div>
+                <div class="movement-progress" style="width: 42%; background: var(--accent-red);"></div>
+              </div>
+              <div class="movement-item">
+                <div class="movement-icon">🥋</div>
+                <div class="movement-info">
+                  <div class="movement-name">Bencao</div>
+                  <div class="movement-category">Kick</div>
+                </div>
+                <div class="movement-score high">8.9</div>
+                <div class="movement-progress" style="width: 89%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Movement Sequence Timeline -->
+        <div class="card" style="grid-column: 1 / 3;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 0.9rem; font-weight: 600;">Movement Flow</h3>
+            <div style="display: flex; gap: 0.5rem;">
+              <span class="badge badge-purple">Sequence Analysis</span>
+            </div>
+          </div>
+          <div class="sequence-timeline" id="sequence-timeline">
+            <div class="sequence-node">
+              <div class="sequence-dot" style="background: var(--accent-green);"></div>
+              <div class="sequence-label">Ginga</div>
+            </div>
+            <div class="sequence-node">
+              <div class="sequence-dot"></div>
+              <div class="sequence-label">Armada</div>
+            </div>
+            <div class="sequence-node">
+              <div class="sequence-dot" style="background: var(--accent-green);"></div>
+              <div class="sequence-label">Ginga</div>
+            </div>
+            <div class="sequence-node">
+              <div class="sequence-dot"></div>
+              <div class="sequence-label">Meia-lua</div>
+            </div>
+            <div class="sequence-node">
+              <div class="sequence-dot" style="background: var(--accent-green);"></div>
+              <div class="sequence-label">Ginga</div>
+            </div>
+            <div class="sequence-node">
+              <div class="sequence-dot"></div>
+              <div class="sequence-label">Au</div>
+            </div>
+            <div class="sequence-node">
+              <div class="sequence-dot" style="background: var(--accent-green);"></div>
+              <div class="sequence-label">Ginga</div>
+            </div>
+            <div class="sequence-node">
+              <div class="sequence-dot"></div>
+              <div class="sequence-label">Bencao</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 2rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
+            <div>
+              <div style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Transitions</div>
+              <div style="font-size: 1.25rem; font-weight: 700;" id="transition-count">7</div>
+            </div>
+            <div>
+              <div style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Smooth Flow</div>
+              <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-green);" id="smooth-transitions">85%</div>
+            </div>
+            <div>
+              <div style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Rhythm</div>
+              <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-gold);" id="rhythm-score">Good</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Technical Evolution Chart -->
+        <div class="card" style="grid-column: 1 / 3;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 0.9rem; font-weight: 600;">Technical Breakdown</h3>
+            <div style="display: flex; gap: 1rem; font-size: 0.75rem;">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; background: var(--accent-gold); border-radius: 2px;"></span>
+                Technique
+              </span>
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; background: var(--accent-green); border-radius: 2px;"></span>
+                Stability
+              </span>
+            </div>
+          </div>
+          <div style="height: 200px; width: 100%; position: relative;">
+            <p style="color: var(--text-tertiary); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;" id="chart-placeholder">Loading chart...</p>
+            <canvas id="performanceChart" style="width: 100%; height: 100%;"></canvas>
+          </div>
+        </div>
+
+        <!-- Detailed Feedback Panel -->
+        <div id="feedback-panel" class="card" style="grid-column: 1 / 3; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.1rem;">📋</span> Detailed Feedback
+            </h3>
+            <span class="badge badge-green">AI Analysis</span>
+          </div>
+          <div id="feedback-cards" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script type="module" src="./src/main.js"></script>
+    <script>
+      // Initialize Lucide icons
+      lucide.createIcons();
+
+      // Toast notification system
+      window.showToast = function(type, title, message) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+          <div class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</div>
+          <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+          </div>
+          <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+      };
+
+      // Animate score ring on load
+      setTimeout(() => {
+        const ring = document.getElementById('score-ring');
+        if (ring) {
+          // 8.4 out of 10 = 84%
+          const circumference = 251.2;
+          const offset = circumference - (0.84 * circumference);
+          ring.style.strokeDashoffset = offset;
+        }
+      }, 500);
+    </script>
+  </body>
+</html>

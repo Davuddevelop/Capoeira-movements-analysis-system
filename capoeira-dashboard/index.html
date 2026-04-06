@@ -1,213 +1,1182 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Capoeira Vision | Movement Analysis Dashboard</title>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="./src/style.css" />
-  </head>
-  <body>
-    <!-- Sidebar -->
-    <aside>
-      <div class="brand">
-        <i data-lucide="shield-check" class="brand-icon"></i>
-        <span class="brand-name">CAPOEIRA VISION</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <title>Capoeira Vision | AI-Powered Movement Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a24;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b0;
+      --accent-gold: #f4c430;
+      --accent-green: #00d67d;
+      --accent-blue: #4d9fff;
+      --gradient-gold: linear-gradient(135deg, #f4c430 0%, #e6a800 100%);
+      --gradient-hero: linear-gradient(180deg, rgba(244, 196, 48, 0.08) 0%, transparent 50%);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-xl: 32px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 1rem 2rem;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    nav.scrolled {
+      padding: 0.75rem 2rem;
+      background: rgba(10, 10, 15, 0.95);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .nav-brand img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .nav-brand span {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      color: var(--text-primary);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--gradient-gold);
+      color: #000;
+      box-shadow: 0 4px 20px rgba(244, 196, 48, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(244, 196, 48, 0.4);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-lg {
+      padding: 16px 32px;
+      font-size: 1rem;
+      border-radius: var(--radius-lg);
+    }
+
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 8rem 2rem 4rem;
+      background: var(--gradient-hero);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(244, 196, 48, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .hero-content {
+      z-index: 1;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(244, 196, 48, 0.1);
+      border: 1px solid rgba(244, 196, 48, 0.3);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      color: var(--accent-gold);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--accent-gold);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .hero h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -1px;
+    }
+
+    .hero h1 .highlight {
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-description {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      max-width: 500px;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 3rem;
+    }
+
+    .hero-stat {
+      text-align: left;
+    }
+
+    .hero-stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .hero-stat-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .hero-visual {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-mockup {
+      width: 100%;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      overflow: hidden;
+    }
+
+    .mockup-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .mockup-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ff5f57;
+    }
+
+    .mockup-dot:nth-child(2) { background: #ffbd2e; }
+    .mockup-dot:nth-child(3) { background: #28ca41; }
+
+    .mockup-content {
+      padding: 1.5rem;
+      display: flex;
+      gap: 1rem;
+    }
+
+    .mockup-video {
+      flex: 2;
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, #1a1a24 0%, #0a0a0f 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mockup-video::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="30" cy="40" r="3" fill="%2300d67d"/><circle cx="70" cy="40" r="3" fill="%2300d67d"/><line x1="30" y1="40" x2="50" y2="30" stroke="%2300d67d" stroke-width="1"/><line x1="70" y1="40" x2="50" y2="30" stroke="%2300d67d" stroke-width="1"/><line x1="30" y1="40" x2="30" y2="60" stroke="%2300d67d" stroke-width="1"/><line x1="70" y1="40" x2="70" y2="60" stroke="%2300d67d" stroke-width="1"/><circle cx="30" cy="60" r="3" fill="%2300d67d"/><circle cx="70" cy="60" r="3" fill="%2300d67d"/><line x1="30" y1="60" x2="25" y2="80" stroke="%2300d67d" stroke-width="1"/><line x1="70" y1="60" x2="75" y2="80" stroke="%2300d67d" stroke-width="1"/></svg>') center/60% no-repeat;
+      opacity: 0.5;
+    }
+
+    .mockup-sidebar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .mockup-score {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .mockup-score-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent-gold);
+    }
+
+    .mockup-score-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .mockup-movement {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mockup-movement span:last-child {
+      font-weight: 700;
+      color: var(--accent-green);
+    }
+
+    /* Features Section */
+    .features {
+      padding: 8rem 2rem;
+      background: var(--bg-secondary);
+    }
+
+    .section-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-label {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(244, 196, 48, 0.1);
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .section-description {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(244, 196, 48, 0.3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-icon.gold { background: rgba(244, 196, 48, 0.15); }
+    .feature-icon.green { background: rgba(0, 214, 125, 0.15); }
+    .feature-icon.blue { background: rgba(77, 159, 255, 0.15); }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* How It Works */
+    .how-it-works {
+      padding: 8rem 2rem;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .step {
+      text-align: center;
+      position: relative;
+    }
+
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 40px;
+      right: -1rem;
+      width: calc(100% - 80px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-gold), transparent);
+      transform: translateX(100%);
+    }
+
+    .step-number {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--gradient-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #000;
+      margin: 0 auto 1.5rem;
+    }
+
+    .step h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .step p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Demo Section */
+    .demo {
+      padding: 8rem 2rem;
+      background: var(--bg-secondary);
+    }
+
+    .demo-container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .demo-video {
+      aspect-ratio: 16/9;
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .demo-video:hover {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 60px rgba(244, 196, 48, 0.2);
+    }
+
+    .play-button {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--gradient-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: #000;
+      transition: transform 0.3s ease;
+    }
+
+    .demo-video:hover .play-button {
+      transform: scale(1.1);
+    }
+
+    /* Testimonials */
+    .testimonials {
+      padding: 8rem 2rem;
+    }
+
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+
+    .testimonial-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+    }
+
+    .testimonial-rating {
+      color: var(--accent-gold);
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .testimonial-text {
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+      color: var(--text-secondary);
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .testimonial-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--gradient-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #000;
+    }
+
+    .testimonial-name {
+      font-weight: 600;
+    }
+
+    .testimonial-role {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    /* CTA Section */
+    .cta {
+      padding: 8rem 2rem;
+      background: var(--gradient-hero);
+      text-align: center;
+    }
+
+    .cta-container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta h2 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .cta p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    /* Footer */
+    footer {
+      padding: 4rem 2rem 2rem;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 4rem;
+      margin-bottom: 4rem;
+    }
+
+    .footer-brand img {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 1rem;
+    }
+
+    .footer-brand p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      max-width: 280px;
+    }
+
+    .footer-column h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .footer-column a {
+      display: block;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+      transition: color 0.2s;
+    }
+
+    .footer-column a:hover {
+      color: var(--text-primary);
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .footer-bottom p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .footer-social a {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .footer-social a:hover {
+      background: var(--accent-gold);
+      border-color: var(--accent-gold);
+      color: #000;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .hero h1 {
+        font-size: 3rem;
+      }
+
+      .hero-description {
+        margin: 0 auto 2rem;
+      }
+
+      .hero-cta {
+        justify-content: center;
+      }
+
+      .hero-stats {
+        justify-content: center;
+      }
+
+      .hero-visual {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .features-grid,
+      .testimonial-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .steps {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .step:not(:last-child)::after {
+        display: none;
+      }
+
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 2.25rem;
+      }
+
+      .hero-stats {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .features-grid,
+      .testimonial-grid,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .section-title {
+        font-size: 2rem;
+      }
+
+      .cta h2 {
+        font-size: 2rem;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .footer-top {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-in {
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="navbar">
+    <div class="nav-container">
+      <a href="#" class="nav-brand">
+        <img src="/logo.png" alt="Capoeira Vision" />
+        <span>CAPOEIRA VISION</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#demo">Demo</a>
+        <a href="#testimonials">Testimonials</a>
       </div>
-      <nav>
-        <a href="#" class="nav-item active">
-          <i data-lucide="layout-dashboard"></i>
-          <span>Dashboard</span>
-        </a>
-        <a href="#" class="nav-item">
-          <i data-lucide="history"></i>
-          <span>Session History</span>
-        </a>
-        <a href="#" class="nav-item">
-          <i data-lucide="users"></i>
-          <span>Athlete Profiles</span>
-        </a>
-        <a href="#" class="nav-item">
-          <i data-lucide="settings"></i>
-          <span>Calibration</span>
-        </a>
-      </nav>
-      <div style="margin-top: auto;">
-        <a href="#" class="nav-item">
-          <i data-lucide="help-circle"></i>
-          <span>Help & Support</span>
-        </a>
+      <div class="nav-cta">
+        <a href="dashboard.html" class="btn btn-secondary">Dashboard</a>
+        <a href="#cta" class="btn btn-primary">Get Started</a>
       </div>
-    </aside>
+    </div>
+  </nav>
 
-    <!-- Main Content -->
-    <main>
-      <header>
-        <div class="header-left">
-          <h1 style="font-size: 1.8rem;">Performance Analysis</h1>
-          <p style="color: var(--text-secondary); font-size: 0.9rem;">Azerbaijan Capoeira Federation • Session <span id="session-id">#8421</span></p>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-container">
+      <div class="hero-content">
+        <div class="hero-badge animate-in">
+          AI-Powered Analysis
         </div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-          <input type="file" id="video-upload" accept="video/*" style="display: none;" />
-          <button id="upload-btn" class="card" style="padding: 0.5rem 1rem; cursor: pointer; color: var(--accent-gold); font-weight: 600; border: 1px solid var(--accent-gold); display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="upload" style="width: 16px;"></i>
-            Analyze New Video
-          </button>
-          <div class="user-profile">
-            <div class="avatar">DA</div>
-            <span style="font-weight: 600; font-size: 0.9rem;">Davud A.</span>
-            <i data-lucide="chevron-down" style="width: 16px; color: var(--text-secondary);"></i>
-          </div>
+        <h1 class="animate-in delay-1">
+          Master Your <span class="highlight">Capoeira</span> Movements
+        </h1>
+        <p class="hero-description animate-in delay-2">
+          Advanced AI technology that analyzes your capoeira techniques in real-time, providing instant feedback and detailed performance metrics.
+        </p>
+        <div class="hero-cta animate-in delay-3">
+          <a href="dashboard.html" class="btn btn-primary btn-lg">Start Analyzing</a>
+          <a href="#demo" class="btn btn-secondary btn-lg">Watch Demo</a>
         </div>
-      </header>
-
-      <!-- Movement Selector Modal (appears before upload) -->
-      <div id="upload-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-        <div class="card" style="width: 480px; max-width: 95vw; padding: 2rem;">
-          <h2 style="margin-bottom: 0.4rem; font-size: 1.4rem;">🎬 Select Movements to Analyze</h2>
-          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Check only the movements that appear in your video. Selecting movements not in the video will produce inaccurate results.</p>
-          
-          <div id="movement-checkboxes" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-              <input type="checkbox" value="Ginga" style="width: 18px; height: 18px; accent-color: var(--accent-gold);" />
-              <div><strong>Ginga</strong><div style="font-size: 0.8rem; color: var(--text-secondary);">Side-to-side base movement</div></div>
-            </label>
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-              <input type="checkbox" value="Au (Cartwheel)" checked style="width: 18px; height: 18px; accent-color: var(--accent-gold);" />
-              <div><strong>Au (Cartwheel)</strong><div style="font-size: 0.8rem; color: var(--text-secondary);">Sideways handstand / cartwheel</div></div>
-            </label>
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-              <input type="checkbox" value="Meia-lua de Frente" style="width: 18px; height: 18px; accent-color: var(--accent-gold);" />
-              <div><strong>Meia-lua de Frente</strong><div style="font-size: 0.8rem; color: var(--text-secondary);">Half-moon front kick</div></div>
-            </label>
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-              <input type="checkbox" value="Armada" style="width: 18px; height: 18px; accent-color: var(--accent-gold);" />
-              <div><strong>Armada</strong><div style="font-size: 0.8rem; color: var(--text-secondary);">Spinning back kick</div></div>
-            </label>
-            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
-              <input type="checkbox" value="Bênção" style="width: 18px; height: 18px; accent-color: var(--accent-gold);" />
-              <div><strong>Bênção</strong><div style="font-size: 0.8rem; color: var(--text-secondary);">Front push kick</div></div>
-            </label>
+        <div class="hero-stats animate-in delay-4">
+          <div class="hero-stat">
+            <div class="hero-stat-value">25+</div>
+            <div class="hero-stat-label">Movements Detected</div>
           </div>
-
-          <div id="modal-file-info" style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.2rem; padding: 0.6rem 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;"></div>
-          
-          <div style="display: flex; gap: 1rem;">
-            <button id="modal-cancel" class="card" style="flex: 1; padding: 0.75rem; cursor: pointer; color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.15);">Cancel</button>
-            <button id="modal-analyze" class="card" style="flex: 2; padding: 0.75rem; cursor: pointer; color: var(--accent-gold); font-weight: 700; border: 1px solid var(--accent-gold);">▶ Start Analysis</button>
+          <div class="hero-stat">
+            <div class="hero-stat-value">98%</div>
+            <div class="hero-stat-label">Detection Accuracy</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-value">Real-time</div>
+            <div class="hero-stat-label">Skeleton Tracking</div>
           </div>
         </div>
       </div>
-
-      <!-- Loading Overlay -->
-      <div id="loading-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-        <div class="brand-icon" style="font-size: 3rem; margin-bottom: 1rem; animation: pulse 2s infinite;">🥋</div>
-        <h2 id="loading-status">Analyzing Movement...</h2>
-        <p style="color: var(--text-secondary); margin-top: 0.5rem;">Running MediaPipe Pose Estimation</p>
-        <div style="width: 300px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 20px; overflow: hidden;">
-          <div id="progress-bar" style="width: 0%; height: 100%; background: var(--accent-gold); transition: width 0.3s;"></div>
+      <div class="hero-visual animate-in delay-2">
+        <div class="hero-mockup">
+          <div class="mockup-header">
+            <div class="mockup-dot"></div>
+            <div class="mockup-dot"></div>
+            <div class="mockup-dot"></div>
+          </div>
+          <div class="mockup-content">
+            <div class="mockup-video"></div>
+            <div class="mockup-sidebar">
+              <div class="mockup-score">
+                <div class="mockup-score-value">8.4</div>
+                <div class="mockup-score-label">Overall Score</div>
+              </div>
+              <div class="mockup-movement">
+                <span>Ginga</span>
+                <span>9.2</span>
+              </div>
+              <div class="mockup-movement">
+                <span>Au</span>
+                <span>8.7</span>
+              </div>
+              <div class="mockup-movement">
+                <span>Armada</span>
+                <span>7.8</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <div class="dashboard-grid">
-        <!-- Video Analysis Section -->
-        <div class="card video-container">
-          <!-- Placeholder shown before any video/camera -->
-          <div id="video-placeholder" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;color:var(--text-secondary);">
-            <div style="font-size:3rem;">🎥</div>
-            <p>Upload a video or enable the camera to begin</p>
-          </div>
-          <!-- Uploaded video player -->
-          <video id="video-player" style="display:none;width:100%;height:100%;object-fit:contain;border-radius:12px;" controls></video>
-          <!-- Camera feed -->
-          <video id="camera-feed" style="display:none;width:100%;height:100%;object-fit:contain;border-radius:12px;" autoplay playsinline muted></video>
-          <!-- Skeleton overlay canvas (always on top) -->
-          <canvas id="overlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
-          <!-- Status badge -->
-          <div id="video-badge" style="display:none;position:absolute;bottom:20px;left:20px;background:rgba(0,0,0,0.7);padding:10px 20px;border-radius:12px;border:1px solid var(--accent-gold);">
-            <span id="video-badge-text" style="color:var(--accent-gold);font-weight:800;font-size:0.8rem;letter-spacing:2px;">SKELETON DETECTION ACTIVE</span>
-          </div>
-          <!-- Camera toggle button -->
-          <button id="camera-btn" style="position:absolute;top:16px;right:16px;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:0.8rem;display:flex;align-items:center;gap:6px;">
-            📷 Live Camera
-          </button>
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">Features</span>
+        <h2 class="section-title">Everything You Need for Perfect Form</h2>
+        <p class="section-description">
+          Our AI-powered platform provides comprehensive analysis tools designed specifically for capoeira practitioners.
+        </p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon gold">🎯</div>
+          <h3>Automatic Detection</h3>
+          <p>No manual selection needed. Our AI automatically identifies and classifies all capoeira movements in your video.</p>
         </div>
-
-        <!-- Right Side: Stats & Movements -->
-        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <!-- Quick Stats -->
-          <div class="card stats-grid">
-            <div class="stat-card">
-              <div class="stat-label">Overall Score</div>
-              <div class="stat-value gold">8.4<span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 400;">/10</span></div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Detection Rate</div>
-              <div class="stat-value green">98.2%</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Power Index</div>
-              <div class="stat-value">720<span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 400;"> N</span></div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Duration</div>
-              <div class="stat-value">12m 45s</div>
-            </div>
-          </div>
-
-          <!-- Movement Classifier -->
-          <div class="card">
-            <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Movement Breakdown</h3>
-            <div class="movement-list">
-              <div class="movement-item">
-                <span class="movement-name">Ginga</span>
-                <span class="movement-score score-high">9.2</span>
-              </div>
-              <div class="movement-item">
-                <span class="movement-name">Au (Cartwheel)</span>
-                <span class="movement-score score-mid">6.8</span>
-              </div>
-              <div class="movement-item">
-                <span class="movement-name">Meia-lua de Frente</span>
-                <span class="movement-score score-high">8.5</span>
-              </div>
-              <div class="movement-item">
-                <span class="movement-name">Armada</span>
-                <span class="movement-score score-low">4.2</span>
-              </div>
-              <div class="movement-item">
-                <span class="movement-name">Bênção</span>
-                <span class="movement-score score-high">8.9</span>
-              </div>
-            </div>
-          </div>
+        <div class="feature-card">
+          <div class="feature-icon green">🦴</div>
+          <h3>Skeleton Tracking</h3>
+          <p>33-point body landmark detection using MediaPipe technology for precise movement analysis.</p>
         </div>
-
-        <!-- Performance Chart -->
-        <div class="card" style="grid-column: 1 / 3;">
-          <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Technical Evolution</h3>
-          <div style="height: 250px; width: 100%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed var(--card-border);">
-            <p style="color: var(--text-secondary);" id="chart-placeholder">Initializing Performance Tracking Charts...</p>
-            <canvas id="performanceChart"></canvas>
-          </div>
+        <div class="feature-card">
+          <div class="feature-icon blue">📊</div>
+          <h3>Performance Metrics</h3>
+          <p>Detailed scoring across technical execution, fluidity, timing, and overall form quality.</p>
         </div>
-
-        <!-- Detailed Feedback Panel (hidden until analysis) -->
-        <div id="feedback-panel" class="card" style="grid-column: 1 / 3; display: none;">
-          <h3 style="margin-bottom: 1.2rem; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
-            <span>📋</span> Detailed Movement Analysis
-          </h3>
-          <div id="feedback-cards" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;"></div>
+        <div class="feature-card">
+          <div class="feature-icon gold">🔄</div>
+          <h3>Sequence Analysis</h3>
+          <p>Evaluate your movement flow and transitions with our combination analyzer for smooth gameplay.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon green">⚡</div>
+          <h3>Real-time Feedback</h3>
+          <p>Get instant visual feedback with skeleton overlay while analyzing your recorded sessions.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon blue">📈</div>
+          <h3>Progress Tracking</h3>
+          <p>Track your improvement over time with historical data and performance trends.</p>
         </div>
       </div>
-    </main>
+    </div>
+  </section>
 
-    <script type="module" src="./src/main.js"></script>
-    <script>
-      // Initialize Lucide icons
-      lucide.createIcons();
-    </script>
-  </body>
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">How It Works</span>
+        <h2 class="section-title">Simple Process, Powerful Results</h2>
+        <p class="section-description">
+          Get detailed analysis of your capoeira performance in just a few clicks.
+        </p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Upload Video</h3>
+          <p>Record your training session and upload the video to our platform.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>AI Analysis</h3>
+          <p>Our AI processes the video, detecting all movements and body positions.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Get Scores</h3>
+          <p>Receive detailed scores for each movement with visual skeleton overlay.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>Improve</h3>
+          <p>Use the feedback to refine your technique and track your progress.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo Section -->
+  <section class="demo" id="demo">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">See It In Action</span>
+        <h2 class="section-title">Watch How It Works</h2>
+        <p class="section-description">
+          See our AI analyze a real capoeira training session in real-time.
+        </p>
+      </div>
+      <div class="demo-container">
+        <div class="demo-video">
+          <div class="play-button">▶</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials" id="testimonials">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">Testimonials</span>
+        <h2 class="section-title">Trusted by Capoeiristas</h2>
+        <p class="section-description">
+          See what practitioners and instructors are saying about Capoeira Vision.
+        </p>
+      </div>
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-rating">★★★★★</div>
+          <p class="testimonial-text">"This tool has transformed how I train my students. The automatic movement detection saves so much time and the feedback is incredibly accurate."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">MA</div>
+            <div>
+              <div class="testimonial-name">Mestre Azevedo</div>
+              <div class="testimonial-role">Capoeira Instructor, Brazil</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-rating">★★★★★</div>
+          <p class="testimonial-text">"The skeleton tracking feature helps me see exactly where my form breaks down. I've improved my Au technique significantly in just two weeks."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">SC</div>
+            <div>
+              <div class="testimonial-name">Sofia Chen</div>
+              <div class="testimonial-role">Advanced Student, Azerbaijan</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-rating">★★★★★</div>
+          <p class="testimonial-text">"Finally, a tool that understands capoeira! The sequence analysis helps my students understand the flow between movements."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">CR</div>
+            <div>
+              <div class="testimonial-name">Contra-Mestre Ramos</div>
+              <div class="testimonial-role">Academy Owner, Portugal</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta" id="cta">
+    <div class="cta-container">
+      <h2>Ready to Elevate Your Game?</h2>
+      <p>Join thousands of capoeiristas using AI to perfect their craft.</p>
+      <div class="cta-buttons">
+        <a href="dashboard.html" class="btn btn-primary btn-lg">Start Free Analysis</a>
+        <a href="#features" class="btn btn-secondary btn-lg">Learn More</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="/logo.png" alt="Capoeira Vision" />
+          <p>AI-powered movement analysis platform designed specifically for capoeira practitioners and instructors.</p>
+        </div>
+        <div class="footer-column">
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#demo">Demo</a>
+          <a href="dashboard.html">Dashboard</a>
+        </div>
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <a href="#">Documentation</a>
+          <a href="#">API Reference</a>
+          <a href="#">Movement Guide</a>
+          <a href="#">Tutorials</a>
+        </div>
+        <div class="footer-column">
+          <h4>Company</h4>
+          <a href="#">About Us</a>
+          <a href="#">Contact</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Capoeira Vision. Azerbaijan Capoeira Federation. All rights reserved.</p>
+        <div class="footer-social">
+          <a href="#">in</a>
+          <a href="#">tw</a>
+          <a href="#">ig</a>
+          <a href="#">yt</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Intersection Observer for animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.feature-card, .step, .testimonial-card').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(30px)';
+      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(el);
+    });
+  </script>
+</body>
 </html>
